@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isSigningOut: boolean;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
@@ -16,6 +17,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -47,7 +49,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setIsSigningOut(true);
+    try {
+      // 180ms smooth fade-out grace period for animated transition
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      await supabase.auth.signOut();
+    } finally {
+      setIsSigningOut(false);
+      const current = window.location.hash.replace(/^#/, '');
+      if (current === '/check' || current === '/reports' || current.startsWith('/reports/')) {
+        window.location.hash = '/';
+      }
+    }
   };
 
   return (
@@ -56,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         session,
         loading,
+        isSigningOut,
         signInWithGoogle,
         signOut,
       }}

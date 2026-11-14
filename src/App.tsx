@@ -6,12 +6,12 @@ import { CheckPage } from './components/CheckPage';
 import { ReportsListPage } from './components/ReportsListPage';
 import { ReportDetailsPage } from './components/ReportDetailsPage';
 import { useCurrentPath } from './components/router';
-import { AuthProvider } from './lib/auth';
+import { AuthProvider, useAuth } from './lib/auth';
 
 const REPORT_PATH_REGEX = /^\/reports\/([0-9a-f-]{36})$/i;
 
-export const App: React.FC = () => {
-  const currentPath = useCurrentPath();
+const MainContent: React.FC<{ currentPath: string }> = ({ currentPath }) => {
+  const { user, isSigningOut } = useAuth();
 
   const renderCurrentView = () => {
     const reportMatch = currentPath.match(REPORT_PATH_REGEX);
@@ -31,10 +31,27 @@ export const App: React.FC = () => {
   };
 
   return (
+    <main
+      key={`${currentPath}-${user ? user.id : 'guest'}`}
+      className={`flex-1 transition-all duration-200 ${
+        isSigningOut
+          ? 'opacity-0 scale-[0.99] blur-[1px]'
+          : 'animate-page-enter'
+      }`}
+    >
+      {renderCurrentView()}
+    </main>
+  );
+};
+
+export const App: React.FC = () => {
+  const currentPath = useCurrentPath();
+
+  return (
     <AuthProvider>
-      <div className="flex min-h-screen flex-col bg-white font-sans text-slate-900 antialiased">
+      <div className="flex min-h-screen flex-col bg-white font-sans text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900">
         <Header currentPath={currentPath} />
-        <main className="flex-1">{renderCurrentView()}</main>
+        <MainContent currentPath={currentPath} />
         <Footer />
       </div>
     </AuthProvider>

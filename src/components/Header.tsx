@@ -79,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
             {/* Auth Profile / Login Button */}
             <div className="ml-3 pl-3 border-l border-slate-200">
               {user ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 animate-fade-in transition-all duration-200">
                   <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
                     <UserIcon className="h-3.5 w-3.5" />
                     <span className="max-w-[140px] truncate">
@@ -99,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition animate-fade-in"
                 >
                   <Lock className="h-3.5 w-3.5" />
                   Sign in
@@ -114,13 +114,13 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition active:scale-95"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition active:scale-95 animate-fade-in"
               >
                 <Lock className="h-3.5 w-3.5" />
                 Sign in
               </button>
             ) : (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 animate-fade-in transition-all duration-200">
                 <span className="flex max-w-[110px] items-center gap-1 truncate rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
                   <UserIcon className="h-3 w-3 shrink-0" />
                   <span className="truncate">
@@ -151,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
 
         {/* Mobile Nav dropdown */}
         {mobileMenuOpen && (
-          <div className="border-b border-blue-100 bg-white px-6 py-4 md:hidden">
+          <div className="border-b border-blue-100 bg-white px-6 py-4 md:hidden animate-slide-down">
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <button
@@ -187,7 +187,10 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
                     </span>
                     <button
                       type="button"
-                      onClick={() => signOut()}
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        signOut();
+                      }}
                       className="text-xs font-semibold text-red-600 hover:underline"
                     >
                       Sign out

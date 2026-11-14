@@ -106,7 +106,7 @@ export const HomePage: React.FC = () => {
 
             {/* CTA Buttons - STRICT AUTH GATING */}
             {user ? (
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row animate-fade-in">
                 <button
                   type="button"
                   onClick={() => navigateTo('/check')}
@@ -124,7 +124,7 @@ export const HomePage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="mt-8 hidden sm:flex sm:flex-row gap-3">
+              <div className="mt-8 hidden sm:flex sm:flex-row gap-3 animate-fade-in">
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
@@ -152,7 +152,7 @@ export const HomePage: React.FC = () => {
 
       {/* Logged-In User Quick Workspace on Home Page */}
       {user && (
-        <section className="border-t border-blue-100 bg-blue-50/40 py-12">
+        <section className="border-t border-blue-100 bg-blue-50/40 py-12 animate-fade-in">
           <div className="mx-auto max-w-6xl px-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
