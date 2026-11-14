@@ -7,10 +7,6 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
-  sendPhoneOtp: (phone: string) => Promise<{ error: AuthError | null }>;
-  verifyPhoneOtp: (phone: string, token: string) => Promise<{ error: AuthError | null }>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signUpWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -38,43 +34,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signInWithGoogle = async () => {
+    // Dynamically use current site origin so it works seamlessly on Vercel AND localhost
+    const redirectUrl = window.location.origin;
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: redirectUrl,
       },
-    });
-    return { error };
-  };
-
-  const sendPhoneOtp = async (phone: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      phone,
-    });
-    return { error };
-  };
-
-  const verifyPhoneOtp = async (phone: string, token: string) => {
-    const { error } = await supabase.auth.verifyOtp({
-      phone,
-      token,
-      type: 'sms',
-    });
-    return { error };
-  };
-
-  const signInWithEmail = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
-  };
-
-  const signUpWithEmail = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
     });
     return { error };
   };
@@ -90,10 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         loading,
         signInWithGoogle,
-        sendPhoneOtp,
-        verifyPhoneOtp,
-        signInWithEmail,
-        signUpWithEmail,
         signOut,
       }}
     >
