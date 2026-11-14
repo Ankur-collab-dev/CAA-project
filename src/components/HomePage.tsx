@@ -105,26 +105,26 @@ export const HomePage: React.FC = () => {
             </p>
 
             {/* CTA Buttons - STRICT AUTH GATING */}
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              {user ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => navigateTo('/check')}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 hover:bg-blue-700"
-                  >
-                    Check a document
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigateTo('/reports')}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white px-6 py-3.5 text-base font-semibold text-blue-700 transition-colors hover:bg-blue-50"
-                  >
-                    View my past reports
-                  </button>
-                </>
-              ) : (
+            {user ? (
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => navigateTo('/check')}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 hover:bg-blue-700"
+                >
+                  Check a document
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigateTo('/reports')}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white px-6 py-3.5 text-base font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+                >
+                  View my past reports
+                </button>
+              </div>
+            ) : (
+              <div className="mt-8 hidden sm:flex sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
@@ -134,8 +134,8 @@ export const HomePage: React.FC = () => {
                   Sign in / Register to start checking
                   <ArrowRight className="h-4 w-4" />
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Hero Image */}

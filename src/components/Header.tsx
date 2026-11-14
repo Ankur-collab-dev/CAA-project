@@ -108,15 +108,45 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
             </div>
           </nav>
 
-          {/* Mobile menu button */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle navigation menu"
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          {/* Mobile Actions: Sign in button + Menu toggle */}
+          <div className="flex items-center gap-2 md:hidden">
+            {!user ? (
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition active:scale-95"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                Sign in
+              </button>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span className="flex max-w-[110px] items-center gap-1 truncate rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                  <UserIcon className="h-3 w-3 shrink-0" />
+                  <span className="truncate">
+                    {user.email?.split('@')[0] || 'User'}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  title="Sign out"
+                  className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-red-600 transition"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle navigation menu"
+              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Nav dropdown */}
