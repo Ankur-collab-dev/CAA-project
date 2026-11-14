@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, LoaderCircle, ShieldCheck, Layers, FileSearch } from 'lucide-react';
+import { Play, LoaderCircle, ShieldCheck, Layers, FileSearch, Lock, ArrowRight } from 'lucide-react';
 import { DocumentInput } from '../types';
 import { DocumentInputSection } from './DocumentInputSection';
 import {
@@ -15,6 +15,8 @@ import {
   insertReport,
 } from '../lib/supabase';
 import { navigateTo } from './router';
+import { useAuth } from '../lib/auth';
+import { AuthModal } from './AuthModal';
 
 const EMPTY_DOC: DocumentInput = { title: '', text: '', fileType: '' };
 
@@ -24,6 +26,9 @@ const REFERENCE_OPTIONS = [
 ];
 
 export const CheckPage: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
   const [targetDoc, setTargetDoc] = useState<DocumentInput>(EMPTY_DOC);
   const [referenceDoc, setReferenceDoc] = useState<DocumentInput>(EMPTY_DOC);
   const [referenceMode, setReferenceMode] = useState<string>('library');
@@ -34,17 +39,56 @@ export const CheckPage: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    countDocuments()
-      .then((c) => {
-        if (active) setLibraryCount(c);
-      })
-      .catch(() => {
-        if (active) setLibraryCount(0);
-      });
+    if (user) {
+      countDocuments()
+        .then((c) => {
+          if (active) setLibraryCount(c);
+        })
+        .catch(() => {
+          if (active) setLibraryCount(0);
+        });
+    }
     return () => {
       active = false;
     };
-  }, []);
+  }, [user]);
+
+  // If user is not signed in, show Auth Gate
+  if (!authLoading && !user) {
+    return (
+      <div className="bg-gradient-to-b from-blue-50/70 to-white">
+        <div className="mx-auto flex min-h-[65vh] max-w-md flex-col items-center justify-center px-6 py-16 text-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 shadow-sm">
+            <Lock className="h-8 w-8" />
+          </span>
+          <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            Sign in to check documents
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            Please sign in or create an account to run originality and plagiarism checks, build your reference library, and access generated reports.
+          </p>
+          <div className="mt-8 flex w-full flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              Sign in / Register
+              <ArrowRight className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateTo('/')}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Back to Home
+            </button>
+          </div>
+          <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+        </div>
+      </div>
+    );
+  }
 
   const handleRunCheck = async () => {
     setFormError(null);
@@ -70,7 +114,6 @@ export const CheckPage: React.FC = () => {
       if (referenceMode === 'library') {
         const stored = await fetchDocuments();
         const normTarget = normalizeText(targetDoc.text);
-        // Exclude exact matches with itself from library
         docsToCompare = stored.filter((d) => normalizeText(d.content) !== normTarget);
         refLabel =
           docsToCompare.length > 0
@@ -82,17 +125,14 @@ export const CheckPage: React.FC = () => {
         refLabel = refTitle;
       }
 
-      // Run exact reverse-engineered algorithm
       const analysis = analyzePlagiarism(targetDoc.text, docsToCompare);
 
-      // Save report in database
       const reportId = await insertReport({
         title: docTitle,
         referenceLabel: refLabel,
         analysis,
       });
 
-      // Optionally save submitted document to library
       if (saveToLibrary) {
         await insertDocument({
           title: docTitle,
@@ -102,7 +142,6 @@ export const CheckPage: React.FC = () => {
         });
       }
 
-      // Navigate to report
       navigateTo(`/reports/${reportId}`);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Something went wrong while running the check.');
@@ -251,4 +290,3 @@ export const CheckPage: React.FC = () => {
     </div>
   );
 };
-

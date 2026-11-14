@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Menu, X, ArrowRight, User as UserIcon, LogOut } from 'lucide-react';
+import { ShieldCheck, Menu, X, ArrowRight, User as UserIcon, LogOut, Lock } from 'lucide-react';
 import { navigateTo } from './router';
 import { useAuth } from '../lib/auth';
 import { AuthModal } from './AuthModal';
@@ -13,17 +13,15 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const { user, signOut } = useAuth();
 
-  // "Reports" is only included in navigation links when user is logged in
+  // If user is logged in: show Home, Check document, My Reports
+  // If not logged in: only show Home
   const navLinks = user
     ? [
         { label: 'Home', path: '/' },
         { label: 'Check a document', path: '/check' },
         { label: 'My Reports', path: '/reports' },
       ]
-    : [
-        { label: 'Home', path: '/' },
-        { label: 'Check a document', path: '/check' },
-      ];
+    : [{ label: 'Home', path: '/' }];
 
   const isActive = (path: string) => {
     return path === '/' ? currentPath === '/' : currentPath.startsWith(path);
@@ -69,14 +67,16 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
               </button>
             ))}
 
-            <button
-              type="button"
-              onClick={() => handleNav('/check')}
-              className="ml-3 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow"
-            >
-              Check document
-              <ArrowRight className="h-4 w-4" />
-            </button>
+            {user ? (
+              <button
+                type="button"
+                onClick={() => handleNav('/check')}
+                className="ml-3 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow"
+              >
+                Check document
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            ) : null}
 
             {/* Auth Profile / Login Button */}
             <div className="ml-3 pl-3 border-l border-slate-200">
@@ -101,8 +101,9 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
-                  className="rounded-lg border border-slate-200 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition"
                 >
+                  <Lock className="h-3.5 w-3.5" />
                   Sign in
                 </button>
               )}
@@ -138,14 +139,17 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
                   {link.label}
                 </button>
               ))}
-              <button
-                type="button"
-                onClick={() => handleNav('/check')}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-              >
-                Check document
-                <ArrowRight className="h-4 w-4" />
-              </button>
+
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => handleNav('/check')}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                >
+                  Check document
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              ) : null}
 
               <div className="mt-3 pt-3 border-t border-slate-100">
                 {user ? (
@@ -168,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
                       setMobileMenuOpen(false);
                       setAuthModalOpen(true);
                     }}
-                    className="w-full rounded-lg border border-slate-200 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="w-full rounded-lg bg-blue-600 py-2.5 text-center text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
                   >
                     Sign in / Register
                   </button>
