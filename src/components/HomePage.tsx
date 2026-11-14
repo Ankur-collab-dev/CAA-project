@@ -312,29 +312,6 @@ export const HomePage: React.FC = () => {
               );
             })}
           </div>
-
-          <div className="mt-12 flex justify-center">
-            {user ? (
-              <button
-                type="button"
-                onClick={() => navigateTo('/check')}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 hover:bg-blue-700"
-              >
-                Go to check document
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setAuthModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 hover:bg-blue-700"
-              >
-                <Lock className="h-4 w-4" />
-                Sign in to start checking
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            )}
-          </div>
         </div>
       </section>
 
