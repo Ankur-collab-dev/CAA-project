@@ -8,16 +8,22 @@ interface HeaderProps {
   currentPath: string;
 }
 
-const NAV_LINKS = [
-  { label: 'Home', path: '/' },
-  { label: 'Check a document', path: '/check' },
-  { label: 'Reports', path: '/reports' },
-];
-
 export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const { user, signOut } = useAuth();
+
+  // "Reports" is only included in navigation links when user is logged in
+  const navLinks = user
+    ? [
+        { label: 'Home', path: '/' },
+        { label: 'Check a document', path: '/check' },
+        { label: 'My Reports', path: '/reports' },
+      ]
+    : [
+        { label: 'Home', path: '/' },
+        { label: 'Check a document', path: '/check' },
+      ];
 
   const isActive = (path: string) => {
     return path === '/' ? currentPath === '/' : currentPath.startsWith(path);
@@ -48,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
 
           {/* Desktop Nav */}
           <nav className="hidden items-center gap-1 md:flex">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <button
                 key={link.path}
                 type="button"
@@ -118,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
         {mobileMenuOpen && (
           <div className="border-b border-blue-100 bg-white px-6 py-4 md:hidden">
             <nav className="flex flex-col gap-2">
-              {NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <button
                   key={link.path}
                   type="button"

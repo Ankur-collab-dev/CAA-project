@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileType,
   ChartColumn,
@@ -8,8 +8,18 @@ import {
   ScanText,
   FileSearch,
   ArrowRight,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 import { navigateTo } from './router';
+import { useAuth } from '../lib/auth';
+import { fetchReportsList } from '../lib/supabase';
+import { ReportListItem } from '../types';
+import {
+  getSimilarityLevel,
+  SIMILARITY_LABELS,
+  SIMILARITY_BADGE_CLASSES,
+} from '../lib/analysis';
 
 const FEATURES = [
   {
@@ -53,6 +63,24 @@ const STEPS = [
 ];
 
 export const HomePage: React.FC = () => {
+  const { user } = useAuth();
+  const [recentReports, setRecentReports] = useState<ReportListItem[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setLoadingReports(true);
+      fetchReportsList()
+        .then((reports) => {
+          setRecentReports(reports.slice(0, 3)); // show top 3 recent reports on logged-in dashboard
+          setLoadingReports(false);
+        })
+        .catch(() => setLoadingReports(false));
+    } else {
+      setRecentReports([]);
+    }
+  }, [user]);
+
   return (
     <div>
       {/* Hero Section */}
@@ -81,13 +109,15 @@ export const HomePage: React.FC = () => {
                 Check a document
                 <ArrowRight className="h-4 w-4" />
               </button>
-              <button
-                type="button"
-                onClick={() => navigateTo('/reports')}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white px-6 py-3.5 text-base font-semibold text-blue-700 transition-colors hover:bg-blue-50"
-              >
-                View past reports
-              </button>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => navigateTo('/reports')}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white px-6 py-3.5 text-base font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+                >
+                  View my past reports
+                </button>
+              ) : null}
             </div>
           </div>
 
@@ -102,6 +132,96 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Logged-In User Quick Past Reports Dashboard */}
+      {user && (
+        <section className="border-t border-blue-100 bg-blue-50/40 py-12">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-600">
+                  <Sparkles className="h-4 w-4" />
+                  Your Workspace
+                </span>
+                <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                  Recent checks from your account
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigateTo('/reports')}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-900"
+              >
+                View all reports ({recentReports.length})
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+
+            {loadingReports ? (
+              <p className="mt-6 text-sm text-slate-500">Loading your recent reports...</p>
+            ) : recentReports.length > 0 ? (
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {recentReports.map((report) => {
+                  const level = getSimilarityLevel(report.similarity);
+                  const dateStr = new Date(report.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  });
+                  return (
+                    <button
+                      key={report.id}
+                      type="button"
+                      onClick={() => navigateTo(`/reports/${report.id}`)}
+                      className="group flex flex-col justify-between rounded-xl border border-blue-100 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${SIMILARITY_BADGE_CLASSES[level]}`}
+                          >
+                            {SIMILARITY_LABELS[level]}
+                          </span>
+                          <span className="text-xs text-slate-400 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {dateStr}
+                          </span>
+                        </div>
+                        <h3 className="mt-3 truncate text-base font-semibold text-slate-900 group-hover:text-blue-700">
+                          {report.title}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {report.word_count.toLocaleString('en-US')} words · vs {report.reference_label}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                        <span className="text-lg font-bold text-blue-700">
+                          {report.similarity.toFixed(1)}%
+                        </span>
+                        <span className="text-xs font-semibold text-blue-600 flex items-center gap-1">
+                          View details <ArrowRight className="h-3.5 w-3.5" />
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-6 rounded-xl border border-dashed border-blue-200 bg-white p-8 text-center">
+                <p className="text-sm text-slate-600">You haven't run any checks yet.</p>
+                <button
+                  type="button"
+                  onClick={() => navigateTo('/check')}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                >
+                  Run your first check
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Features Grid */}
       <section className="border-t border-blue-50 bg-white py-16 md:py-20">
