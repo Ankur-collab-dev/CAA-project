@@ -7,11 +7,18 @@ const SUPABASE_ANON_KEY = 'sb_publishable_Unm1scqM4Zkeief1E0ZcMA_1mQ3giHE';
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export async function fetchDocuments(): Promise<DocumentRecord[]> {
-  const { data, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let query = supabase
     .from('documents')
     .select('id, title, content')
     .order('created_at', { ascending: false });
 
+  if (user) {
+    query = query.eq('user_id', user.id);
+  }
+
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data as DocumentRecord[]) ?? [];
 }
@@ -22,11 +29,14 @@ export async function insertDocument(doc: {
   fileType: string;
   wordCount: number;
 }): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { error } = await supabase.from('documents').insert({
     title: doc.title,
     content: doc.content,
     file_type: doc.fileType,
     word_count: doc.wordCount,
+    user_id: user?.id || null,
   });
 
   if (error) throw new Error(error.message);
@@ -42,6 +52,8 @@ export async function insertReport(report: {
     sources: any;
   };
 }): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { data, error } = await supabase
     .from('reports')
     .insert({
@@ -51,6 +63,7 @@ export async function insertReport(report: {
       word_count: report.analysis.wordCount,
       sentences: report.analysis.sentences,
       sources: report.analysis.sources,
+      user_id: user?.id || null,
     })
     .select('id')
     .single();
@@ -71,21 +84,35 @@ export async function fetchReportById(id: string): Promise<ReportRecord | null> 
 }
 
 export async function fetchReportsList(): Promise<ReportListItem[]> {
-  const { data, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let query = supabase
     .from('reports')
     .select('id, title, reference_label, similarity, word_count, created_at')
     .order('created_at', { ascending: false })
     .limit(200);
 
+  if (user) {
+    query = query.eq('user_id', user.id);
+  }
+
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data as ReportListItem[]) ?? [];
 }
 
 export async function countDocuments(): Promise<number> {
-  const { count, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let query = supabase
     .from('documents')
     .select('id', { count: 'exact', head: true });
 
+  if (user) {
+    query = query.eq('user_id', user.id);
+  }
+
+  const { count, error } = await query;
   if (error) throw new Error(error.message);
   return count ?? 0;
 }
