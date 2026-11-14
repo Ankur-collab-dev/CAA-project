@@ -4,6 +4,7 @@ import {
   ArrowRight,
   TriangleAlert,
   LoaderCircle,
+  Lock,
 } from 'lucide-react';
 import { ReportListItem } from '../types';
 import { fetchReportsList } from '../lib/supabase';
@@ -13,8 +14,12 @@ import {
   SIMILARITY_BADGE_CLASSES,
 } from '../lib/analysis';
 import { navigateTo } from './router';
+import { useAuth } from '../lib/auth';
+import { AuthModal } from './AuthModal';
 
 export const ReportsListPage: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [state, setState] = useState<{
     status: 'loading' | 'ready' | 'error';
     reports?: ReportListItem[];
@@ -23,6 +28,15 @@ export const ReportsListPage: React.FC = () => {
 
   useEffect(() => {
     let active = true;
+
+    // If user is not logged in and auth finished loading, do not fetch
+    if (!authLoading && !user) {
+      setState({ status: 'ready', reports: [] });
+      return;
+    }
+
+    if (!user) return;
+
     fetchReportsList()
       .then((reports) => {
         if (active) setState({ status: 'ready', reports });
@@ -38,7 +52,44 @@ export const ReportsListPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [user, authLoading]);
+
+  // If user is not logged in, show Auth Gate
+  if (!authLoading && !user) {
+    return (
+      <div className="bg-gradient-to-b from-blue-50/70 to-white">
+        <div className="mx-auto flex min-h-[65vh] max-w-md flex-col items-center justify-center px-6 py-16 text-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 shadow-sm">
+            <Lock className="h-8 w-8" />
+          </span>
+          <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            Sign in to view your reports
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            For privacy and security, all checked papers and past similarity reports are strictly private to each account.
+          </p>
+          <div className="mt-8 flex w-full flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              Sign in to your account
+              <ArrowRight className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateTo('/')}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Back to Home
+            </button>
+          </div>
+          <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-b from-blue-50/70 to-white">
@@ -46,13 +97,13 @@ export const ReportsListPage: React.FC = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
-              History
+              Personal History
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
               Your reports
             </h1>
             <p className="mt-2 text-base text-slate-600">
-              Every check you run is saved here, newest first.
+              Only you can see the reports you have generated.
             </p>
           </div>
           <button
@@ -66,10 +117,10 @@ export const ReportsListPage: React.FC = () => {
         </div>
 
         <div className="mt-10">
-          {state.status === 'loading' && (
+          {(state.status === 'loading' || authLoading) && (
             <div className="flex flex-col items-center justify-center gap-3 py-20 text-slate-500">
               <LoaderCircle className="h-7 w-7 animate-spin text-blue-600" />
-              <p className="text-sm">Loading reports...</p>
+              <p className="text-sm">Loading your private reports...</p>
             </div>
           )}
 
@@ -80,14 +131,14 @@ export const ReportsListPage: React.FC = () => {
             </div>
           )}
 
-          {state.status === 'ready' && state.reports?.length === 0 && (
+          {state.status === 'ready' && !authLoading && state.reports?.length === 0 && (
             <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-blue-200 bg-white px-6 py-16 text-center">
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
                 <FileSearch className="h-7 w-7" />
               </span>
               <h2 className="text-xl font-semibold text-slate-900">No reports yet</h2>
               <p className="max-w-sm text-sm text-slate-600">
-                Run your first check and its report will appear here.
+                Run your first plagiarism check and its report will appear here.
               </p>
               <button
                 type="button"
@@ -100,7 +151,7 @@ export const ReportsListPage: React.FC = () => {
             </div>
           )}
 
-          {state.status === 'ready' && state.reports && state.reports.length > 0 && (
+          {state.status === 'ready' && !authLoading && state.reports && state.reports.length > 0 && (
             <ul className="grid gap-4">
               {state.reports.map((report) => {
                 const level = getSimilarityLevel(report.similarity);
@@ -148,4 +199,3 @@ export const ReportsListPage: React.FC = () => {
     </div>
   );
 };
-
