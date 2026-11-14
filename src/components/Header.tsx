@@ -13,12 +13,10 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const { user, signOut } = useAuth();
 
-  // If user is logged in: show Home, Check document, My Reports
-  // If not logged in: only show Home
+  // Navigation links: Home and My Reports (only when logged in)
   const navLinks = user
     ? [
         { label: 'Home', path: '/' },
-        { label: 'Check a document', path: '/check' },
         { label: 'My Reports', path: '/reports' },
       ]
     : [{ label: 'Home', path: '/' }];
@@ -84,8 +82,8 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
                     <UserIcon className="h-3.5 w-3.5" />
-                    <span className="max-w-[120px] truncate">
-                      {user.email || user.phone || 'My Account'}
+                    <span className="max-w-[140px] truncate">
+                      {user.email || user.user_metadata?.full_name || 'My Account'}
                     </span>
                   </span>
                   <button
@@ -155,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
                 {user ? (
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-600 truncate">
-                      {user.email || user.phone}
+                      {user.email || 'Signed in'}
                     </span>
                     <button
                       type="button"
@@ -174,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath }) => {
                     }}
                     className="w-full rounded-lg bg-blue-600 py-2.5 text-center text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
                   >
-                    Sign in / Register
+                    Sign in with Google
                   </button>
                 )}
               </div>
